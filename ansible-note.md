@@ -1,4 +1,4 @@
-# Install ntp and start ntp - name simple-playbook.yml
+- Install ntp and start ntp - name simple-playbook.yml
 ```
 ---
 - hosts: all
@@ -8,14 +8,14 @@ tasks:
 - name: Ensure NTP is running.
   service: name=ntpd state=started enabled=yes
 ```
-# check connetion ansile to all server 
+- check connetion ansile to all server 
 ```
 # multi - name of group in inventory file of ansible
 # hostname - check hostname of server
 ansible multi -a "hostname"
 
 ```
-# change directory of inventory file
+- change directory of inventory file
 ```
 export ANSIBLE_-HOSTS=/etc/ansible/hosts
 ```
