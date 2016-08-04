@@ -15,3 +15,8 @@ tasks:
 ansible multi -a "hostname"
 
 ```
+# change directory of inventory file
+```
+export ANSIBLE_-HOSTS=/etc/ansible/hosts
+```
+
