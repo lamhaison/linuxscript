@@ -1,4 +1,14 @@
-- check connetion ansible to all server
+### Install ntp and start ntp - name simple-playbook.yml
+```
+---
+- hosts: all
+tasks:
+- name: Ensure NTP (for time synchronization) is installed.
+  yum: name=ntp state=installed
+- name: Ensure NTP is running.
+  service: name=ntpd state=started enabled=yes
+```
+- check connetion ansile to all server 
 ```
 # multi - name of group in inventory file of ansible
 # hostname - check hostname of server
@@ -18,7 +28,7 @@ ansible multi -s -m yum -a "name=ntp state=installed"
 # install ansible and enalbe ntp when start-up vm
 ansible multi -s -m service -a "name=ntpd state=started enabled=yes"
 
-# start, sync, enable ntp start on boot
+# start, sync, enable ntp start on boot 
 ansible multi -s -a "service ntpd stop"
 ansible multi -s -a "ntpdate -q 0.rhel.pool.ntp.org"
 ansible multi -s -a "service ntpd start"
@@ -195,16 +205,10 @@ ssh; you might sometimes want to use local to run a playbook on your local machi
 a remote server via cron).
 * --check: Run the playbook in Check Mode (‘Dry Run’); all tasks defined in the playbook will
 be checked against all hosts, but none will actually be run.
-```
 
 
 * run ansible with variable
 ```
 ansible-playbook playbook.yml \
 --extra-vars="node_apps_location=/usr/local/opt/node"
-```
-
-* make sure handlers always run after a task use notify to call the handler
-```
-ansible-playbook --force-handler ansbile.yml
 ```

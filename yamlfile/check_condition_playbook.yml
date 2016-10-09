@@ -1,0 +1,12 @@
+# session Launch a Node.js app
+
+---
+- hosts: all
+tasks:
+- name: Check list of running Node.js apps.
+  command: forever list
+  register: forever_list
+  changed_when: false
+- name: Start example Node.js app.
+  command: "forever start {{ node_apps_location }}/app/app.js"
+  when: "forever_list.stdout.find('{{ node_apps_location }}/app/app.js') == -1"
