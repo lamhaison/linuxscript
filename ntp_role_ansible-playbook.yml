@@ -1,0 +1,8 @@
+# install: ansible-galaxy install geerlingguy.ntp
+# ansible-playbook -s -i inventory ntp_role_ansible-playbook.yml
+# ansible-playbook -s -i inventory ntp_role_ansible-playbook.yml --extra-vars='ntp_manage_config=true, ntp_enable=true'
+---
+- name: ntp configuration.
+  hosts: all
+  roles:
+    - geerlingguy.ntp
