@@ -1,0 +1,48 @@
+---
+# tasks file for rsyslog
+
+- name: Include distribution specific variables
+  include_vars: "{{ ansible_distribution }}.yml"
+  tags:
+    - rsyslog
+
+- include: Ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - rsyslog
+
+- name: Create rsyslog.conf configuration file
+  become: yes
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: true
+  notify:
+    - restart rsyslog
+  tags:
+    - rsyslog
+
+
+- include: createlogfolder.yml
+  tags:
+    - rsyslog
+- include: renderlogconfiguration.yml
+  tags:
+    - rysslog
+
+- name: Ensure rsyslog service is started and enabled on boot
+  become: yes
+  service:
+    name: "{{ rsyslog_service_name }}"
+    state: started
+    enabled: yes
+  tags:
+    - rsyslog
+
+
+- include: logrotate.yml
+  tags:
+    - logrotate

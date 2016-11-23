@@ -1,0 +1,55 @@
+- name: Create rsyslog.d configuration directory
+  become: yes
+  file:
+    path: /etc/rsyslog.d
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  tags:
+    - rsyslog
+
+- name: Copy configuration file for nginx log.
+  copy: 
+    src=30-nginx-log.conf
+    dest=/etc/rsyslog.d/30-nginx-log.conf
+    mode=644
+  notify:
+    - restart rsyslog
+  tags:
+    - rysslog
+
+
+- name: Copy configuration file for haproxy log.
+  copy: 
+    src=31-haproxy-log.conf
+    dest=/etc/rsyslog.d/31-haproxy-log.conf
+    mode=644
+  notify:
+    - restart rsyslog
+  tags:
+    - rysslog
+
+
+- name: Create application specific configuration files
+  become: yes
+  template:
+    src: app-log.conf.j2
+    dest: /etc/rsyslog.d/10-app-log.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart rsyslog
+  tags:
+    - rsyslog
+
+- name: Copy configuration file for cdtool log.
+  copy: 
+    src=32-cdtool-log.conf
+    dest=/etc/rsyslog.d/32-cdtool-log.conf
+    mode=644
+  notify:
+    - restart rsyslog
+  tags:
+    - rysslog

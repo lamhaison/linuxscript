@@ -1,0 +1,45 @@
+- name: Create nginx log directory
+  become: yes
+  file:
+    path: /data/nginx-log/
+    owner: syslog
+    group: admin
+    mode: 0755
+    state: directory
+  tags:
+    - rsyslog
+
+- name: Create haproxy log directory
+  become: yes
+  file:
+    path: /data/haproxy-log/
+    owner: syslog
+    group: admin
+    mode: 0755
+    state: directory
+  tags:
+    - rsyslog
+
+- name: Create app log directory
+  become: yes
+  file:
+    path: /data/app-log/
+    owner: syslog
+    group: admin
+    mode: 0755
+    state: directory
+  tags:
+    - rsyslog
+
+- name: Create app log directory
+  become: yes
+  file:
+    path: /data/cdtool/
+    owner: syslog
+    group: admin
+    mode: 0755
+    state: directory
+  tags:
+    - rsyslog
+
+
