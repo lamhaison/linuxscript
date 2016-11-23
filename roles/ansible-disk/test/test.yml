@@ -1,0 +1,10 @@
+---
+- hosts: dmz-sentry
+  vars:
+    disk_additional_disks:
+      - disk: /dev/sdc
+        fstype: ext4
+        mount_options: defaults
+        mount: /data
+  roles:
+    - test.mountrole

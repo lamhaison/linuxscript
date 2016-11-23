@@ -208,3 +208,14 @@ ansible-playbook playbook.yml \
 ```
 ansible-playbook --force-handler ansbile.yml
 ```
+
+
+* create template for role using ansible-galaxy commandline
+```
+ansible-galaxy init role_name
+```
+
+* Show dynamic var of ansible
+```
+ansible hostname.example.com -m setup
+```

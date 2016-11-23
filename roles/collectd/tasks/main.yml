@@ -1,0 +1,17 @@
+# tasks file for collectdrole
+---
+- name: Ensure collectd agent (collectd agent) is installed.
+  apt: name=collectd state=installed
+
+- name: Ensure collectd is running.
+  service: name=collectd state=started enabled=yes
+
+- name: Create configuration for collectd agent
+  template:
+    src: "collectd.conf"
+    dest: "/etc/collectd/collectd.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart Collectd

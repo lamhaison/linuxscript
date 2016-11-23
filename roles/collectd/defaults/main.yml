@@ -1,0 +1,7 @@
+---
+HOST_NAME: "hostname"
+INTERVAL: 10
+TIME_OUT: 5
+GRAPHITE_SERVER_IP: "monitor.fimplus-prod.io"
+GRAPHITE_SERVER_PORT: 2003
+ENVIRONMENT: "stag"

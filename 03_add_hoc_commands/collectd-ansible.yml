@@ -1,0 +1,27 @@
+# ansible-playbook -s collectd-ansible.yml --extra-vars='HOST_NAME=db' \
+# --extra-vars='MONITOR_SERVER=monitor.fimplus-prod.io' \
+# --extra-vars='ENVIRONMENT=prod' \
+# --extra-vars='host=db'
+---
+- name: install collectd agent
+  hosts: "{{ host }}"
+  # sudo: yes
+  tasks:
+    - name: Ensure collectd agent (collectd agent) is installed.
+      apt: name=collectd state=installed
+    - name: Ensure collectd is running.
+      service: name=collectd state=started enabled=yes
+
+    - name: Create configuration for collectd agent
+      template:
+        src: "templates/collectd.conf"
+        dest: "/etc/collectd/collectd.conf"
+        owner: root
+        group: root
+        mode: 0644
+      register: is_changed
+
+    # Only reboot when configuration is changed
+    - name: Restart Collectd
+      service: name=collectd state=restarted
+      when: is_changed.changed
