@@ -1,3 +1,17 @@
+# set_permissions [-p vhost] {user} {conf} {write} {read}
+#   vhost
+#     The name of the virtual host to which to grant the user access, defaulting to /.
+#   user
+#     The name of the user to grant access to the specified virtual host.
+#   conf
+#     A regular expression matching resource names for which the user is granted configure permissions.
+#   write
+#     A regular expression matching resource names for which the user is granted write permissions.
+#   read
+#     A regular expression matching resource names for which the user is granted read permissions.
+#   Sets user permissions.
+# Ex: rabbitmqctl set_permissions -p /myvhost tonyg "^tonyg-.*" ".*" ".*"
+For example:
 ---
 - name: rabbitmq configuration
 
