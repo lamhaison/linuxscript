@@ -1,0 +1,13 @@
+---
+- name: rabbitmq configuration
+
+  hosts: stag-rbmq
+  tasks:
+    - name: create user
+      rabbitmq_user: user=test
+                 password=test
+                 vhost=/ssmng
+                 configure_priv=.
+                 read_priv=.
+                 write_priv=.*
+                 state=present
