@@ -218,4 +218,31 @@ ansible-galaxy init role_name
 * Show dynamic var of ansible
 ```
 ansible hostname.example.com -m setup
+# Only show what you need
+ansible hostname -m setup -a "filter=ansible_mounts"
+
+# Display facts from all hosts and store them indexed by I(hostname) at C(/tmp/facts).
+ansible all -m setup --tree /tmp/facts
+
 ```
+
+# strategy of defining variables
+```
+• Roles (to be discussed in the next chapter) should provide sane default values via the role’s
+‘defaults’ variables. These variables will be the fallback in case the variable is not defined
+anywhere else in the chain.
+• Playbooks should rarely define variables (e.g. via set_fact), but rather, variables should be
+defined either in included vars_files or, less often, via inventory.
+• Only truly host- or group-specific variables should be defined in host or group inventories.
+• Dynamic and static inventory sources should contain a minimum of variables, especially as
+these variables are often less visible to those maintaining a particular playbook.
+• Command line variables (-e) should be avoided when possible. One of the main use cases is
+when doing local testing or running one-off playbooks where you aren’t worried about the
+maintainability or idempotence of the tasks you’re running.
+```
+
+# Using tag
+```
+ansible-playbook tags.yml --skip-tags "notifications"
+```
+

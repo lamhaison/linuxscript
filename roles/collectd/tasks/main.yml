@@ -5,6 +5,9 @@
 
 - name: Ensure collectd is running.
   service: name=collectd state=started enabled=yes
+  
+- name: Change hostname
+  hostname: name={{ HOST_NAME }}
 
 - name: Create configuration for collectd agent
   template:

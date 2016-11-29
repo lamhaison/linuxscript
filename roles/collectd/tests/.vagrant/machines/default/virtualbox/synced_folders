@@ -1,1 +1,1 @@
-{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/lhs/PycharmProjects/linuxscript/collectdrole/tests","disabled":false,"__vagrantfile":true}}}
+{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/lhs/PycharmProjects/linuxscript/roles/collectd/tests","disabled":false,"__vagrantfile":true}}}
