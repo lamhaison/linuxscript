@@ -11,25 +11,18 @@
 
 - name: Copy configuration file for nginx log.
   copy: 
-    src=30-nginx-log.conf
-    dest=/etc/rsyslog.d/30-nginx-log.conf
+    src="{{ item }}"
+    dest=/etc/rsyslog.d/"{{ item }}"
     mode=644
+  with_items:
+    - 30-nginx-log.conf
+    - 31-haproxy-log.conf
+    - 32-cdtool-log.conf
+
   notify:
     - restart rsyslog
   tags:
     - rysslog
-
-
-- name: Copy configuration file for haproxy log.
-  copy: 
-    src=31-haproxy-log.conf
-    dest=/etc/rsyslog.d/31-haproxy-log.conf
-    mode=644
-  notify:
-    - restart rsyslog
-  tags:
-    - rysslog
-
 
 - name: Create application specific configuration files
   become: yes
@@ -44,12 +37,16 @@
   tags:
     - rsyslog
 
-- name: Copy configuration file for cdtool log.
-  copy: 
-    src=32-cdtool-log.conf
-    dest=/etc/rsyslog.d/32-cdtool-log.conf
-    mode=644
+
+- name: Create consul specific configuration files
+  become: yes
+  template:
+    src: consul-log.conf.j2
+    dest: /etc/rsyslog.d/12-consul-log.conf
+    owner: root
+    group: root
+    mode: 0644
   notify:
     - restart rsyslog
   tags:
-    - rysslog
+    - rsyslog

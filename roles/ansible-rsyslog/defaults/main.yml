@@ -9,6 +9,7 @@ rsyslog_udp_address: 127.0.0.1
 rsyslog_udp_port: 514
 rsyslog_tcp_enable: false
 rsyslog_tcp_port: 514
+rsyslog_data_dir: "/data"
 rsyslog_apps: 
   - hd1-cas 
   - hd1-sms-gateway

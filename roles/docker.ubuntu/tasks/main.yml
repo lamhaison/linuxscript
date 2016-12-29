@@ -28,13 +28,13 @@
   shell: uname -r
   register: uname_output
 
-# - name: Install linux-image-extra-* packages to enable AuFS driver
-#   apt: pkg={{ item }} state=present
-#   with_items:
-#     - linux-image-extra-{{ uname_output.stdout }}
-#     - linux-image-extra-virtual
-#   when: ansible_distribution_version|version_compare(14.04, '>=')
-#   ignore_errors: yes
+- name: Install linux-image-extra-* packages to enable AuFS driver
+  apt: pkg={{ item }} state=present
+  with_items:
+    - linux-image-extra-{{ uname_output.stdout }}
+    - linux-image-extra-virtual
+  when: ansible_distribution_version|version_compare(14.04, '>=')
+  ignore_errors: yes
 
 - name: Run dmsetup for Ubuntu 16.04
   command: dmsetup mknodes

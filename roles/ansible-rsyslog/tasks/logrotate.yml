@@ -1,33 +1,12 @@
 - name: Copy configuration file for logrotate cdtool log.
   copy: 
-    src=cdtool_logrotate.conf
-    dest=/etc/logrotate.d/cdtool_logrotate.conf
+    src="{{ item }}"
+    dest=/etc/logrotate.d/"{{ item }}"
     mode=644
-  tags:
-    - logrotate
-
-- name: Copy configuration file for logrotate haproxy log.
-  copy: 
-    src=haproxy_logrotate.conf
-    dest=/etc/logrotate.d/haproxy_logrotate.conf
-    mode=644
-  tags:
-    - logrotate
-
-
-- name: Copy configuration file for logrotate nginx log.
-  copy: 
-    src=nginx_logrotate.conf
-    dest=/etc/logrotate.d/nginx_logrotate.conf
-    mode=644
-  tags:
-    - logrotate
-
-
-- name: Copy configuration file for logrotate applog log.
-  copy: 
-    src=applog_logrotate.conf
-    dest=/etc/logrotate.d/applog_logrotate.conf
-    mode=644
+  with_items:
+    - cdtool_logrotate.conf
+    - haproxy_logrotate.conf
+    - nginx_logrotate.conf
+    - applog_logrotate.conf
   tags:
     - logrotate
