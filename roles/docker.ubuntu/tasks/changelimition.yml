@@ -1,0 +1,15 @@
+# Add or modify nofile soft limit for the all user
+- name: Add or modify nofile soft limit for the all user
+  pam_limits:
+    domain: "*"
+    limit_type: soft
+    limit_item: nofile
+    value: 65000
+
+- name: Add or modify nofile hard limit for the all user
+  pam_limits:
+    domain: "*"
+    limit_type: hard
+    limit_item: nofile
+    value: 65000
+

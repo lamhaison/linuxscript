@@ -1,0 +1,8 @@
+---
+- hosts: all
+  vars:
+    - private_key: "true"
+  #  - movies_fimplus_vn: "false"
+  remote_user: vagrant
+  roles:
+    - ../../

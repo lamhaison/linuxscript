@@ -1,0 +1,10 @@
+- name: Create logrotate configuration file for rorate *json.log file of container
+  become: yes
+  template:
+    src: logratate-container-log.conf
+    dest: /etc/logrotate.d/log-container
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - logrotate

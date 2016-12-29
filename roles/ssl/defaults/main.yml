@@ -1,0 +1,6 @@
+---
+# defaults file for ssl
+pem_dir: "/etc/ssl/certs"
+movies_fimplus_vn: "true"
+fimplus_io: "true"
+private_key: "false"

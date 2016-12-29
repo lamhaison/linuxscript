@@ -1,0 +1,23 @@
+- name: Copy pem file for fimplus.io domain.
+  copy: 
+    src=fimplus.io.pem
+    dest="{{ pem_dir }}/fimplus.io.pem_2018"
+    mode=644
+    backup=yes
+  when: fimplus_io == "true"
+
+- name: Copy pem file for movies.fimplus.vn.
+  copy: 
+    src=movies.fimplus.vn.pem
+    dest="{{ pem_dir }}/movies.fimplus.vn.pem_2018"
+    mode=644
+    backup=yes
+  when: movies_fimplus_vn == "true"
+
+- name: copy private key
+  copy:
+    src=private.key
+    dest="{{ pem_dir }}/private.key"
+    mode=644
+    backup=yes
+  when: private_key == "true"

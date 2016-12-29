@@ -1,0 +1,13 @@
+- name: Check that the /data/docker exists
+  stat:
+    path: "{{ DOCKER_DIR }}"
+  register: p
+
+- name: move data to new location
+  command: "cp -r /var/lib/docker {{ DOCKER_DIR }}"
+  when: p.stat.isdir is not defined
+
+- debug:
+    msg: "Path exists and is a directory"
+  when: p.stat.isdir is defined and p.stat.isdir
+  

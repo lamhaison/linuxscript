@@ -1,0 +1,7 @@
+- name: Add dns server to head file
+  template:
+    src: "resolv_head.conf"
+    dest: "/etc/resolvconf/resolv.conf.d/head"
+    owner: root
+    group: root
+    mode: 0644

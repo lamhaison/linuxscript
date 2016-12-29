@@ -1,0 +1,45 @@
+- name: check docker consul
+  command: "docker ps -f name=consul -q"
+  register: p
+
+- name: stop docker consul {{ p.stdout }}
+  command: "docker stop {{ p.stdout }}"
+  when: p.stdout != ""
+
+- name: delete docker consul
+  command: "docker rm -f {{ p.stdout }}"
+  when: p.stdout != ""
+
+# - name: get_ip_addr
+#   command: "IFACE='eth0' && (ip -4 address show $IFACE | grep 'inet' | sed 's/.*inet \([0-9\.]\+\).*/\1/')"
+#   register: consul_ip
+
+# - name: run consul
+  # command: ""
+- name: create consul
+  docker_container:
+    name: consul
+    image: progrium/consul
+    network_mode: host
+    command: -server -advertise {{ consul_ip }} -bootstrap-expect {{ number_cluster }}
+    state: started
+    hostname: node1
+    restart_policy: always
+    volumes:
+      - /mnt:/data
+  when: init_consul
+
+- name: join consul to cluster
+  docker_container:
+    name: consul
+    image: progrium/consul
+    network_mode: host
+    command: -server -advertise {{ consul_ip }} -join {{ consul_master }}
+    state: started
+    hostname: node1
+    restart_policy: always
+    volumes:
+      - /mnt:/data
+  when: join_consul
+
+

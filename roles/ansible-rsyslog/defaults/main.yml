@@ -33,3 +33,10 @@ envs:
   - sand
   - stag
   - prod
+
+folder_list:
+  - /data/haproxy-log/
+  - /data/app-log/
+  - /data/cdtool/
+  - /data/nginx-log/
+  - /data/consul-log/

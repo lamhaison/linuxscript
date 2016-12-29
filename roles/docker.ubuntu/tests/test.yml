@@ -1,0 +1,18 @@
+---
+- hosts: all
+  # gather-facts: no
+  vars:
+    disk_additional_disks:
+      - disk: /dev/sdb
+        fstype: ext4
+        mount_options: defaults
+        mount: /data
+    docker_group_members: [ 'vagrant']
+    ntp_enabled: true
+    ntp_manage_config: true
+  remote_user: vagrant
+  roles:
+    - ntp
+    - mountdisk
+    - ../../
+    

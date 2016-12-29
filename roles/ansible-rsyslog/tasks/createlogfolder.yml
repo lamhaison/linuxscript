@@ -1,11 +1,12 @@
 - name: Create nginx log directory
   become: yes
   file:
-    path: /data/nginx-log/
+    path: {{ item }}
     owner: syslog
     group: admin
     mode: 0755
     state: directory
+  with_items: "{{ folder_list }}" 
   tags:
     - rsyslog
 

@@ -1,0 +1,9 @@
+---
+# tasks file for ssl
+- name: Add pem file to server
+  include: copypemfile.yml
+  tags:
+    - copypemfile
+
+
+    

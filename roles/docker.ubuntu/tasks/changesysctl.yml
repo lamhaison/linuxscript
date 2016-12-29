@@ -1,0 +1,40 @@
+# Set ip forwarding on in /proc and in the sysctl file and reload if necessary
+- name: add overcommit_memory setting
+  sysctl:
+    name: overcommit_memory
+    value: 1
+    sysctl_set: yes
+    state: present
+    # sysctl_file: /etc/sysctl.conf
+    # reload: yes
+  ignore_errors: yes
+
+- name: add fs.file-max setting    
+  sysctl:
+    name: fs.file-max
+    value: 100000
+    sysctl_set: yes
+    state: present
+    # sysctl_file: /etc/sysctl.conf
+    # reload: yes
+  ignore_errors: yes
+
+- name: add net.core.somaxconn setting 
+  sysctl:
+    name: net.core.somaxconn
+    value: 65000
+    sysctl_set: yes
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    # reload: yes
+  ignore_errors: yes
+
+- name: add net.ipv4.ip_nonlocal_bind setting 
+  sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: 1
+    sysctl_set: yes
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    # reload: yes
+  ignore_errors: yes
