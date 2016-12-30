@@ -11,8 +11,8 @@
 
 - name: Copy configuration file for nginx log.
   copy: 
-    src="{{ item }}"
-    dest=/etc/rsyslog.d/"{{ item }}"
+    src={{ item }}
+    dest=/etc/rsyslog.d/{{ item }}
     mode=644
   with_items:
     - 30-nginx-log.conf
