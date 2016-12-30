@@ -40,7 +40,7 @@
 - name: Create haproxy specific configuration files
   become: yes
   template:
-    src: haproxy-log.conf.j2
+    src: haproxy.conf.j2
     dest: /etc/rsyslog.d/131-haproxy.conf
     owner: root
     group: root
