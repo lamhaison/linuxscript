@@ -42,3 +42,4 @@ folder_list:
   - /data/cdtool/
   - /data/nginx-log/
   - /data/consul-log/
+  - /data/nginx_lb_swarm/
