@@ -9,58 +9,75 @@
   tags:
     - rsyslog
 
-- name: Copy configuration file for nginx log.
-  copy: 
-    src={{ item }}
-    dest=/etc/rsyslog.d/{{ item }}
-    mode=644
+# - name: Copy configuration rsyslog file for other service log.
+#   copy: 
+#     src={{ item }}
+#     dest=/etc/rsyslog.d/{{ item }}
+#     mode=644
+#   with_items:
+#     - 30-nginx-log.conf
+#     - 32-cdtool-log.conf
+#   notify:
+#     - restart rsyslog
+#   tags:
+#     - rysslog
+
+- name: Create rsyslog configuration for service
+  become: yes
+  template:
+    src: "{{ item.src }}"
+    dest: /etc/rsyslog.d/{{ item.dest }}
+    owner: root
+    group: root
+    mode: 0644
   with_items:
-    - 30-nginx-log.conf
-    - 31-haproxy-log.conf
-    - 32-cdtool-log.conf
-
-  notify:
-    - restart rsyslog
-  tags:
-    - rysslog
-
-- name: Create application specific configuration files
-  become: yes
-  template:
-    src: app-log.conf.j2
-    dest: /etc/rsyslog.d/10-app-log.conf
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - restart rsyslog
-  tags:
-    - rsyslog
-
-- name: Create haproxy specific configuration files
-  become: yes
-  template:
-    src: haproxy.conf.j2
-    dest: /etc/rsyslog.d/131-haproxy.conf
-    owner: root
-    group: root
-    mode: 0644
+    - {src: 'app-log.conf.j2', dest: '11-app-log.conf'}
+    - {src: 'haproxy-log.conf.j2', dest: '12-haproxy-log.conf'}
+    - {src: 'nginx-log.conf.j2', dest: '13-nginx-log.conf'}
+    - {src: 'other-log.conf.j2', dest: '14-other-log.conf'}
   notify:
     - restart rsyslog
   tags:
     - rsyslog
 
 
+# - name: Create application specific configuration files
+#   become: yes
+#   template:
+#     src: app-log.conf.j2
+#     dest: /etc/rsyslog.d/10-app-log.conf
+#     owner: root
+#     group: root
+#     mode: 0644
+#   notify:
+#     - restart rsyslog
+#   tags:
+#     - rsyslog
 
-- name: Create consul specific configuration files
-  become: yes
-  template:
-    src: consul-log.conf.j2
-    dest: /etc/rsyslog.d/12-consul-log.conf
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - restart rsyslog
-  tags:
-    - rsyslog
+# - name: Create haproxy specific configuration files
+#   become: yes
+#   template:
+#     src: haproxy.conf.j2
+#     dest: /etc/rsyslog.d/131-haproxy.conf
+#     owner: root
+#     group: root
+#     mode: 0644
+#   notify:
+#     - restart rsyslog
+#   tags:
+#     - rsyslog
+
+
+
+# - name: Create consul specific configuration files
+#   become: yes
+#   template:
+#     src: consul-log.conf.j2
+#     dest: /etc/rsyslog.d/12-consul-log.conf
+#     owner: root
+#     group: root
+#     mode: 0644
+#   notify:
+#     - restart rsyslog
+#   tags:
+#     - rsyslog

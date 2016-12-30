@@ -1,4 +1,4 @@
-/data/nginx-log/*.log {
+{{rsyslog_data_dir}}/nginx-log/*.log {
         su syslog adm
         daily
         rotate 60

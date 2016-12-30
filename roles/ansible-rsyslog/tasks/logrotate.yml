@@ -1,8 +1,24 @@
+# - name: Copy configuration file for logrotate cdtool log.
+#   copy: 
+#     src={{ item }}
+#     dest=/etc/logrotate.d/{{ item }}
+#     mode=644
+#   with_items:
+#     - cdtool_logrotate.conf
+#     - haproxy_logrotate.conf
+#     - nginx_logrotate.conf
+#     - applog_logrotate.conf
+#   tags:
+#     - logrotate
+
+
 - name: Copy configuration file for logrotate cdtool log.
-  copy: 
-    src={{ item }}
-    dest=/etc/logrotate.d/{{ item }}
-    mode=644
+  template: 
+    src: "{{ item }}.j2"
+    dest: /etc/logrotate.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
   with_items:
     - cdtool_logrotate.conf
     - haproxy_logrotate.conf

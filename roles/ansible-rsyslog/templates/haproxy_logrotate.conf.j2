@@ -1,4 +1,4 @@
-/data/haproxy/*.log {
+{{rsyslog_data_dir}}/haproxy/*.log {
         su syslog adm
         daily
         rotate 60
@@ -7,4 +7,3 @@
         minsize 100K
         dateext
 }
-

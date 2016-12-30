@@ -1,7 +1,7 @@
 {%- for service in rsyslog_apps -%}
 {%- for env in envs -%}
 {%- if  env == "sand" -%}
-:syslogtag, contains, "{{service}}_{{env}}" /data/app-log/{{service}}-{{env}}/{{service}}_{{env}}.log
+:syslogtag, contains, "{{service}}_{{env}}" {{rsyslog_data_dir}}/app-log/{{service}}-{{env}}/{{service}}_{{env}}.log
 {% endif %}
 
 {%- endfor -%}
@@ -10,7 +10,7 @@
 {%- for service in rsyslog_apps -%}
 {%- for env in envs -%}
 {%- if  env == "prod" -%}
-:syslogtag, contains, "{{service}}_{{env}}" /data/app-log/{{service}}-{{env}}/{{service}}_{{env}}.log
+:syslogtag, contains, "{{service}}_{{env}}" {{rsyslog_data_dir}}/app-log/{{service}}-{{env}}/{{service}}_{{env}}.log
 {% endif %}
 
 {%- endfor -%}
@@ -19,7 +19,7 @@
 {%- for service in rsyslog_apps -%}
 {%- for env in envs -%}
 {%- if  env == "stag" -%}
-:syslogtag, contains, "{{service}}_{{env}}" /data/app-log/{{service}}-{{env}}/{{service}}_{{env}}.log
+:syslogtag, contains, "{{service}}_{{env}}" {{rsyslog_data_dir}}/app-log/{{service}}-{{env}}/{{service}}_{{env}}.log
 {% endif %}
 
 {%- endfor -%}
