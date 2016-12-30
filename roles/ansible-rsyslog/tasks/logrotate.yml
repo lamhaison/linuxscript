@@ -1,7 +1,7 @@
 - name: Copy configuration file for logrotate cdtool log.
   copy: 
-    src="{{ item }}"
-    dest=/etc/logrotate.d/"{{ item }}"
+    src={{ item }}
+    dest=/etc/logrotate.d/{{ item }}
     mode=644
   with_items:
     - cdtool_logrotate.conf

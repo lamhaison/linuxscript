@@ -30,6 +30,7 @@ rsyslog_apps:
   - hd1-mbf
   - hd1-crm
   - hd1-static
+  - hd1-ubs
 envs: 
   - sand
   - stag

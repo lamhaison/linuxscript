@@ -37,6 +37,20 @@
   tags:
     - rsyslog
 
+- name: Create haproxy specific configuration files
+  become: yes
+  template:
+    src: haproxy-log.conf.j2
+    dest: /etc/rsyslog.d/131-haproxy.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart rsyslog
+  tags:
+    - rsyslog
+
+
 
 - name: Create consul specific configuration files
   become: yes

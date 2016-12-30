@@ -1,0 +1,4 @@
+{%- for env in envs -%}
+:programname, contains, "haproxy-{{env}}" /data/haproxy/haproxy-{{env}}.log
+:programname, contains, "haproxy-{{env}}" /data/haproxy/haproxy-{{env}}.log
+{%- endfor -%}
