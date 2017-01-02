@@ -412,17 +412,54 @@ docker rm -f registrator \
 && IP=172.20.20.1 \
 && CONSUL_IP=172.20.20.12 \
 && docker run -d  --restart=always --name=registrator \
--e SERVICE_CHECK_TTL=30s \
--e SERVICE_80_CHECK_HTTP=/health_check \
--e SERVICE_80_CHECK_INTERVAL=15s \
--e SERVICE_80_CHECK_TIMEOUT=1s \
 -h $IP --volume=/var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator \
 -ip $IP -retry-attempts -1 -retry-interval 5000 -resync 120 consul://$CONSUL_IP:8500
 
 
-docker run --name mynginx1 -P -d \
+docker rm -f registrator \
+&& IP=172.20.20.13 \
+&& CONSUL_IP=172.20.20.13 \
+&& docker run -d  --restart=always --name=registrator \
+-h $IP --volume=/var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator \
+-ip $IP -retry-attempts -1 -retry-interval 5000 -resync 120 consul://$CONSUL_IP:8500
+
+
+docker run --name mynginx1 -p 8090:80 -d \
 -e SERVICE_CHECK_TTL=30s \
--e SERVICE_80_CHECK_HTTP=/health_check \
+-e SERVICE_80_CHECK_HTTP=/ \
 -e SERVICE_80_CHECK_INTERVAL=15s \
 -e SERVICE_80_CHECK_TIMEOUT=1s \
 nginx
+
+
+docker run --name mynginx2 -p 8092:80 -d \
+-e SERVICE_CHECK_TTL=30s \
+-e SERVICE_80_CHECK_HTTP=/ \
+-e SERVICE_80_CHECK_INTERVAL=15s \
+-e SERVICE_80_CHECK_TIMEOUT=1s \
+-e SERVICE_NAME=service_test_1 \
+-e SERVICE_CHECK_TTL=30s \
+nginx
+
+
+docker run --name mynginx3 -p 80 -d \
+-e SERVICE_CHECK_TTL=30s \
+nginx
+
+
+
+docker run -d --name redis.0 -p 10000:6379 \
+-e SERVICE_NAME=service_test \
+-e "SERVICE_TAGS=master,backups" \
+redis
+
+
+docker run -d --name redis.1 -p 10001:6379 \
+-e SERVICE_NAME=service_test \
+-e "SERVICE_TAGS=master,backups" \
+redis
+
+
+
+curl -s http://172.20.20.11:8500/v1/catalog/service/service_test_1-80
+curl -s http://172.20.20.11:8500/v1/health/checks/service_test_1-80
