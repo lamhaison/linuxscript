@@ -18,6 +18,11 @@ sudo mv consul /usr/bin/consul
 sudo mkdir /etc/consul.d
 sudo chmod a+w /etc/consul.d
 
+
+echo Install docker
+sudo apt-get install curl -y
+sudo curl -fsSL https://get.docker.com/ | sh
+
 SCRIPT
 
 # Specify a custom Vagrant box for the demo
@@ -45,5 +50,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "n3" do |n3|
       n3.vm.hostname = "n3"
       n3.vm.network "private_network", ip: "172.20.20.12"
+  end
+
+
+  config.vm.define "n4" do |n4|
+      n4.vm.hostname = "n4"
+      n4.vm.network "private_network", ip: "172.20.20.13"
   end
 end
