@@ -311,3 +311,95 @@ docker rm -f registrator \
 --volume=/var/run/docker.sock:/tmp/docker.sock   gliderlabs/registrator \
 -tags $TAG -ip $IP \
 -retry-attempts -1 -retry-interval 5000 -resync 120 consul://$CONSUL_IP
+
+
+
+/bin/consul agent -config-dir=/config -server -advertise 10.10.5.148 -bootstrap-expect 3
+/bin/consul agent -config-dir=/config -server -advertise 10.10.5.149 -join 10.10.5.148
+/bin/consul agent -config-dir=/config -server -advertise 10.10.5.150 -join 10.10.5.148
+
+
+consul agent -ui -client=0.0.0.0 -data-dir=/tmp/consul -config-dir=/etc/consul.d -server -advertise 172.20.20.10 -bootstrap-expect 3
+consul agent -ui -client=0.0.0.0 -data-dir=/tmp/consul -config-dir=/etc/consul.d -server -advertise 172.20.20.11 -join 172.20.20.10
+consul agent -ui -client=0.0.0.0 -data-dir=/tmp/consul -config-dir=/etc/consul.d -server -advertise 172.20.20.12 -join 172.20.20.10
+
+
+
+consul agent -ui -client=0.0.0.0 -server -bootstrap -data-dir /tmp/consul -advertise 172.20.20.10
+
+consul agent -ui -client=0.0.0.0 -data-dir=/tmp/consul -server -advertise 172.20.20.11
+consul agent -ui -client=0.0.0.0 -data-dir=/tmp/consul -server -advertise 172.20.20.12
+
+# consul agent -ui -client=0.0.0.0
+
+consul agent -server -advertise 172.20.20.10 -data-dir /tmp/consul
+
+consul join 172.20.20.11 172.20.20.12
+
+
+consul agent -config-dir /root/services -data-dir /tmp/consul -client 172.20.20.13 -advertise 172.20.20.13 -ui -join 172.20.20.10
+
+
+consul agent -data-dir /tmp/consul -client 172.20.20.13 -advertise 172.20.20.13 -ui -join 172.20.20.10
+
+# Query data
+consul members -rpc-addr=172.20.20.13:8400
+
+# Show information of cluster
+consuk info
+
+
+docker run -d --net=host -e 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true}' \
+consul agent -server -bind=0.0.0.0 \
+-ui -client=0.0.0.0 \
+-retry-join=172.20.20.12 -bootstrap-expect=3
+
+
+docker run -d --net=host -e 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true}' \
+consul agent -server -bind=0.0.0.0 -ui -client=0.0.0.0 -retry-join=172.20.20.12 \
+-advertise 172.20.20.10 -bootstrap-expect=3
+
+
+docker run -d --net=host -e 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true}' \
+consul agent -server -bind=0.0.0.0 -ui -client=0.0.0.0 \
+-retry-join=172.20.20.10 -join=172.20.20.10 \
+-advertise 172.20.20.11 -bootstrap-expect=3
+
+
+docker run -d --net=host -e 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true}' \
+consul agent -server -bind=0.0.0.0 -ui -client=0.0.0.0 \
+-retry-join=172.20.20.10 -join=172.20.20.10 \
+-advertise 172.20.20.12 -bootstrap-expect=3
+
+
+docker run -d --net=host \
+-v /docker/config:/consul/config \
+-e 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}' \
+consul agent -ui -bind=0.0.0.0 -client=0.0.0.0 \
+-retry-join=172.20.20.10 -join=172.20.20.10 \
+-advertise 172.20.20.13
+
+
+
+docker rm -f registrator \
+&& IP=172.20.20.1 \
+&& CONSUL_IP=172.20.20.12 \
+&& docker run -d  --restart=always --name=registrator \
+-h $IP --volume=/var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator \
+-ip $IP -retry-attempts -1 -retry-interval 5000 -resync 120 consul://$CONSUL_IP:8500
+
+
+docker rm -f registrator \
+&& IP=172.20.20.13 \
+&& CONSUL_IP=172.20.20.13 \
+&& docker run -d  --restart=always --name=registrator \
+-h $IP --volume=/var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator \
+-ip $IP -retry-attempts -1 -retry-interval 5000 -resync 120 consul://$CONSUL_IP:8500
+
+
+docker run --name mynginx1 -p 8090:80 -d \
+-e SERVICE_CHECK_TTL=30s \
+-e SERVICE_80_CHECK_HTTP=/ \
+-e SERVICE_80_CHECK_INTERVAL=15s \
+-e SERVICE_80_CHECK_TIMEOUT=1s \
+nginx
