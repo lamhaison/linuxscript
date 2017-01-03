@@ -1,90 +1,192 @@
-# Set up lab for consul
-```
-DEMO_BOX_NAME=ubuntu/trusty64 vagrant up
+# Please read the openais.conf.5 manual page
+totem {
+    version: 2
 
-consul agent -server -bootstrap-expect=3 \
-    -data-dir=/tmp/consul -node=agent-one -bind=172.20.20.10 \
-    -config-dir=/etc/consul.d
+    # How long before declaring a token lost (ms)
+    token: 3000
 
-consul agent -data-dir=/tmp/consul -node=agent-two \
-    -bind=172.20.20.11 -config-dir=/etc/consul.d
+    # How many token retransmits before forming a new configuration
+    token_retransmits_before_loss_const: 10
 
-consul agent -data-dir=/tmp/consul -node=agent-two \
-    -bind=172.20.20.12 -config-dir=/etc/consul.d
+    # How long to wait for join messages in the membership protocol (ms)
+    join: 60
+
+    # How long to wait for consensus to be achieved before starting a new round of membership configuration (ms)
+    consensus: 3600
+
+    # Turn off the virtual synchrony filter
+    vsftype: none
+
+    # Number of messages that may be sent by one processor on receipt of the token
+    max_messages: 20
+
+    # Limit generated nodeids to 31-bits (positive signed integers)
+    clear_node_high_bit: yes
+
+    # Disable encryption
+    secauth: off
+
+    # How many threads to use for encryption/decryption
+    threads: 0
+
+    # Optionally assign a fixed node id (integer)
+    # nodeid: 1234
+
+    # This specifies the mode of redundant ring, which may be none, active, or passive.
+    rrp_mode: none
+
+    interface {
+        # The following values need to be set based on your environment 
+        ringnumber: 0
+        bindnetaddr: 10.10.11.0 
+        broadcast: yes
+        mcastport: 5406
+    }
+    transport: udpu
+}
+
+nodelist {
+    node {
+        ring0_addr: 10.10.11.228
+        name: primary
+        nodeid: 1
+    }
+
+    node {
+        ring0_addr: 10.10.11.229
+        name: secondary
+        nodeid: 2
+    }
+}
 
 
-consul join 172.20.20.11
-```
 
 
-# Add health check for web service
-```
-echo '{"check": {"name": "ping",
-  "script": "ping -c1 google.com >/dev/null", "interval": "30s"}}' \
-  >/etc/consul.d/ping.json
+amf {
+    mode: disabled
+}
 
-echo '{"service": {"name": "web", "tags": ["rails"], "port": 80,
-  "check": {"script": "curl localhost >/dev/null 2>&1", "interval": "10s"}}}' \
-  >/etc/consul.d/web.json
-```
+quorum {
+    # Quorum for the Pacemaker Cluster Resource Manager
+    provider: corosync_votequorum
+    expected_votes: 1
+}
+
+aisexec {
+        user:   root
+        group:  root
+}
+
+logging {
+    fileline: off
+    to_stderr: yes
+    to_logfile: yes
+    to_syslog: yes
+    syslog_facility: daemon
+    debug: off
+    timestamp: on
+    logger_subsys {
+            subsys: AMF
+            debug: off
+            tags: enter|leave|trace1|trace2|trace3|trace4|trace6
+    }
+
+    logfile: /var/log/corosync/corosync.log
+}
 
 
-# Summary
-# How many kind of healcheck is in consul?
-```
-* Health check by calling service is service's health check
-* Anythin else Health check is node's health check
-```
 
-# How many kind of check is in consul?
-```
-Script + Interval: check health by calling external tool very interval
-HTTP + Interval: check health  by creating get request to service every interal
-TCP + Interval: check health by making an TCP connection with netcat tool, ...
-Time to Live: Client send put request to server and service consider service's status by check time of the latest message.(Keep alive message)
-* /v1/agent/check/pass/<checkId>
-* /v1/agent/check/fail/<checkId>
 
-Docker + Interval: check health by calling external application which is packaged within a docker container
-```
+# vim /etc/corosync/corosync.conf
 
-** Example health check
-*** HTTP HEALTH CHECK
-```
-{
-  "check": {
-    "id": "api",
-    "name": "HTTP API on port 5000",
-    "http": "http://localhost:5000/health",
-    "interval": "10s",
-    "timeout": "1s"
+totem {
+        version: 2
+
+        # How long before declaring a token lost (ms)
+        token: 3000
+
+        # How many token retransmits before forming a new configuration
+        token_retransmits_before_loss_const: 10
+
+        # How long to wait for join messages in the membership protocol (ms)
+        join: 60
+
+        # How long to wait for consensus to be achieved before starting a new round of membership configuration (ms)
+        consensus: 3600
+
+        # Turn off the virtual synchrony filter
+        vsftype: none
+
+        # Number of messages that may be sent by one processor on receipt of the token
+        max_messages: 20
+
+        # Limit generated nodeids to 31-bits (positive signed integers)
+        clear_node_high_bit: yes
+
+        # Disable encryption
+        secauth: off
+
+        # How many threads to use for encryption/decryption
+        threads: 0
+
+        # Optionally assign a fixed node id (integer)
+        # nodeid: 1234
+
+        # This specifies the mode of redundant ring, which may be none, active, or passive.
+        rrp_mode: none
+        interface {
+                # The following values need to be set based on your environment 
+                ringnumber: 0
+                bindnetaddr: 172.20.20.0
+                mcastaddr: 226.94.1.1
+                mcastport: 5405
+        }
+}
+
+amf {
+        mode: disabled
+}
+
+quorum {
+        # Quorum for the Pacemaker Cluster Resource Manager
+        provider: corosync_votequorum
+        expected_votes: 1
+}
+
+aisexec {
+        user:   root
+        group:  root
+}
+
+nodelist {
+  node {
+    ring0_addr: 172.20.20.10
+    name: n1
+    nodeid: 1
+  }
+  node {
+    ring0_addr: 172.20.20.11
+    name: n2
+    nodeid: 2
   }
 }
-'''
-
-*** TTL HEALTH CHECK
-```
-{
-  "check": {
-    "id": "web-app",
-    "name": "Web App Status",
-    "notes": "Web app does a curl internally every 10 seconds",
-    "ttl": "30s"
-  }
-}
-```
 
 
-***  DOCKER CHECK
-```
-{
-"check": {
-    "id": "mem-util",
-    "name": "Memory utilization",
-    "docker_container_id": "f972c95ebf0e",
-    "shell": "/bin/bash",
-    "script": "/usr/local/bin/check_mem.py",
-    "interval": "10s"
-  }
-}
-```
+ #!/bin/bash
+BIND_NETWORK="10.123.10.0"
+SHARED_VIP="10.123.10.26"
+apt-get update
+apt-get install -y pacemaker ntp
+# Configure Corosync
+echo "START=yes" > /etc/default/corosync
+sed -i "s/bindnetaddr: 127.0.0.1/bindnetaddr: $BIND_NETWORK/g" /etc/corosync/corosync.conf
+# Start clustering software
+service corosync start
+service pacemaker start
+update-rc.d pacemaker defaults
+crm configure <<EOF
+primitive virtual-ip ocf:heartbeat:IPaddr \
+params ip="$SHARED_VIP"
+property stonith-enabled=false
+commit
+EOF
