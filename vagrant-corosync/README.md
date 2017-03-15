@@ -98,3 +98,69 @@ commit
 EOF
 
 ```
+
+
+primitive p_api-ip ocf:heartbeat:IPaddr2 \
+    params ip="10.10.0.90" cidr_netmask="24" nic="eth0" \
+    op monitor interval="10s"
+
+primitive lb-haproxy lsb:haproxy \
+    op monitor interval="10s"
+primitive p_api-ip ocf:heartbeat:IPaddr2 \
+    params ip="10.10.0.90" cidr_netmask="24" nic="eth0" \
+    op monitor interval="10s"
+primitive p_management-ip ocf:heartbeat:IPaddr2 \
+    params ip="103.205.104.157" cidr_netmask="24" nic="eth1" \
+    op monitor interval="10s"
+colocation lb-haproxy-with-p_api-ip inf: lb-haproxy p_api-ip
+colocation p_management-ip-with-p_api-ip inf: p_management-ip p_api-ip
+order lb-haproxy-after-p_api-ip inf: p_api-ip lb-haproxy
+order p_management-ip-after-p_api-ip inf: p_api-ip p_management-ip
+property $id="cib-bootstrap-options" \
+    dc-version="1.1.10-42f2063" \
+    cluster-infrastructure="corosync" \
+    stonith-enabled="false" \
+    no-quorum-policy="ignore"
+
+
+
+
+
+# commandline
+```
+
+# Commandline
+# check corosync service
+sudo corosync-cmapctl | grep members
+
+# Check Pacemaker with crm:
+sudo crm status
+
+# Verify pacemaker confuguration
+sudo crm configure show
+
+crm resource stop Apache
+crm configure delete Apache
+
+# set standby status for Node Name
+sudo crm node standby NodeName
+
+# Set online status for node name
+sudo crm node online NodeName
+
+# edit a resource
+sudo crm configure edit ResourceName
+sudo crm resource stop ResourceName
+sudo crm configure delete ResourceName
+```
+
+
+sudo crm configure primitive Nginx ocf:heartbeat:nginx \
+  params httpd="/usr/sbin/nginx" \
+  op start timeout="40s" interval="0" \
+  op monitor timeout="30s" interval="10s" on-fail="restart" \
+  op stop timeout="60s" interval="0"
+
+
+
+

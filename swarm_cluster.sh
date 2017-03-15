@@ -349,11 +349,9 @@ docker rm -f registrator \
 -ip $IP -retry-attempts -1 -retry-interval 5000 -resync 120 consul://$CONSUL_IP
 
 
-docker -H :4000 run --name mynginx2 -p 8092:80 -d \
--e SERVICE_CHECK_TTL=30s \
+docker -H sw-master.fimplus-prod.io:4000 run --name mynginx2 -p 80 -d \
 -e SERVICE_80_CHECK_HTTP=/ \
 -e SERVICE_80_CHECK_INTERVAL=15s \
 -e SERVICE_80_CHECK_TIMEOUT=1s \
 -e SERVICE_NAME=service_test_1 \
--e SERVICE_CHECK_TTL=30s \
 nginx

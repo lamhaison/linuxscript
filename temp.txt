@@ -1,0 +1,677 @@
+from unittest import TestCase
+import logging
+import json
+import requests
+
+logger = logging.getLogger('test.cronjobapi')
+API_TOKEN = 'fimplus'
+
+class CallingApiTestCase(TestCase):
+    TOKEN = API_TOKEN
+    host = '127.0.0.1'
+    # host = '10.1.6.4'
+    port = '8080'
+    # port = '8081'
+    # port = '8000'
+    api_create_url = 'http://%s:%s/scheduler/create' % (host, port)
+    api_delete_url = 'http://%s:%s/scheduler/delete' % (host, port)
+    api_update_url = 'http://%s:%s/scheduler/update' % (host, port)
+    api_update_status_url = 'http://%s:%s/scheduler/feedback' % (host, port)
+    # deploy_url_v1 = 'http://%s:%s/cd/deploy/v1' % (host, port)
+    # scale_url = 'http://%s:%s/cd/scale' % (host, port)
+    headers = {"TOKEN": TOKEN}
+    service_name = 'hd1-cas'
+    deploy_env = 'stag'
+
+    data = {}
+
+    def call_create_scheduler(self, data, expert_status_code=200):
+        try:
+            logger.debug(self.api_create_url)
+            response = requests.post(url=self.api_create_url, data=json.dumps(data), headers=self.headers)
+            logger.debug(response.text)
+            self.assertEqual(expert_status_code, response.status_code)
+
+            return json.loads(response.text)
+        except Exception as ex:
+            logger.error(ex)
+            self.assertEqual('not ex', 'ex')
+
+    def call_delete_scheduler(self, url, expert_status_code=200):
+        try:
+            logger.debug(url)
+            response = requests.delete(url=url, headers=self.headers)
+            logger.debug(response.text)
+            self.assertEqual(expert_status_code, response.status_code)
+        except Exception as ex:
+            logger.error(ex)
+            self.assertEqual('not ex', 'ex')
+
+    def call_update_scheduler(self, url, data, expert_status_code=200):
+        try:
+            logger.debug(url)
+            response = requests.put(url=url, data=json.dumps(data), headers=self.headers)
+            logger.debug(response.text)
+            self.assertEqual(expert_status_code, response.status_code)
+
+            return json.loads(response.text)
+        except Exception as ex:
+            logger.error(ex)
+            self.assertEqual('not ex', 'ex')
+
+    def call_update_task_result(self, url, data, expert_status_code=200):
+
+        try:
+            logger.debug(url)
+            logger.debug(json.dumps(data))
+            response = requests.post(url=url, data=json.dumps(data), headers=self.headers)
+            logger.debug(response.text)
+            self.assertEqual(expert_status_code, response.status_code)
+
+            return json.loads(response.text)
+        except Exception as ex:
+            logger.error(ex)
+            self.assertEqual('not ex', 'ex')
+
+
+    def test_invalid_data(self):
+        data = dict(self.data)
+        data['task_name'] = 'crontab_test'
+        data['type'] = 'inteval'
+        data['every'] = 100
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'test'
+
+        self.call_create_scheduler(data=data, expert_status_code=400)
+
+        data['type'] = 'crontab'
+        data['crontab'] = '1111111'
+        self.call_create_scheduler(data=data, expert_status_code=400)
+
+
+    def test_invalid_queue_name(self):
+
+        data = dict(self.data)
+        from datetime import datetime
+        name = 'crontab_test:%s' % datetime.now()
+        data['task_name'] = name
+        data['type'] = 'interval'
+        data['every'] = 100
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'btz'
+        data['period'] = 'hours'
+
+        self.call_create_scheduler(data=data, expert_status_code=400)
+
+
+    def test_create_scheduler_interval(self):
+        data = dict(self.data)
+        from datetime import datetime
+        name = 'crontab_test:%s' % datetime.now()
+        data['task_name'] = name
+        data['type'] = 'interval'
+        data['every'] = 100
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'test'
+        data['period'] = 'hours'
+
+        self.call_create_scheduler(data=data, expert_status_code=200)
+
+        data = dict(self.data)
+        data['task_name'] = name
+        data['type'] = 'interval'
+        data['every'] = 100
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'test'
+        data['period'] = 'hours'
+
+        self.call_create_scheduler(data=data, expert_status_code=400)
+
+
+        data = dict(self.data)
+        data['task_name'] = name
+        data['type'] = 'interval'
+        data['every'] = 100
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'abc'
+        data['period'] = 'hours'
+
+        self.call_create_scheduler(data=data, expert_status_code=400)
+
+    def test_create_scheduler_crontab(self):
+        data = dict(self.data)
+        from datetime import datetime
+        data['task_name'] = 'crontab_test:%s' % datetime.now()
+        data['type'] = 'crontab'
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'test'
+        data['crontab'] = '10 * * * *'
+
+        logger.debug(json.dumps(data))
+
+        self.call_create_scheduler(data=data, expert_status_code=200)
+
+    def test_delete_task_scheduler(self):
+
+        data = dict(self.data)
+        from datetime import datetime
+        data['task_name'] = 'crontab_test-%s' % datetime.now()
+        data['type'] = 'crontab'
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'test'
+        data['crontab'] = '10 * * * *'
+
+        logger.debug(json.dumps(data))
+
+        result = self.call_create_scheduler(data=data, expert_status_code=200)
+
+        # url = self.api_delete_url  + "/%s" % data['task_name']
+        url = self.api_delete_url + "/%s" % result['task_id']
+
+        self.call_delete_scheduler(url=url, expert_status_code=200)
+
+
+    def test_update_task_scheduler(self):
+
+
+        data = dict(self.data)
+        from datetime import datetime
+        data['task_name'] = 'crontab_test-%s' % datetime.now()
+        data['type'] = 'crontab'
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'test'
+        data['crontab'] = '10 * * * *'
+
+        logger.debug(json.dumps(data))
+
+        result = self.call_create_scheduler(data=data, expert_status_code=200)
+
+        # url = self.api_delete_url  + "/%s" % data['task_name']
+        url = self.api_update_url + "/%s" % result['task_id']
+
+
+        new_contab = '20 * * * *'
+        data['crontab'] = new_contab
+        logger.debug(json.dumps(data))
+        result = self.call_update_scheduler(url=url, data=data, expert_status_code=200)
+        self.assertEqual(result['crontab'], new_contab)
+
+
+
+        data = dict(self.data)
+        from datetime import datetime
+        name = 'crontab_test:%s' % datetime.now()
+        data['task_name'] = name
+        data['type'] = 'interval'
+        data['every'] = 100
+        data['message'] = {'test': 'test'}
+        data['queue'] = 'test'
+        data['period'] = 'hours'
+
+        result = self.call_create_scheduler(data=data, expert_status_code=200)
+
+        url = self.api_update_url + "/%s" % result['task_id']
+
+        new_every = 2000
+        data['every'] = new_every
+        logger.debug(json.dumps(data))
+        result = self.call_update_scheduler(url=url, data=data, expert_status_code=200)
+        self.assertEqual(result['every'], new_every)
+
+
+    def test_update_task_result(self):
+
+
+        data = {
+            # 'task_id': '42a6497c-8543-46d5-b076-0d3d470df8fb',
+            'task_id': '16a47618-9c57-4664-ba87-191c5fca2cae',
+            'result': 'lhs'
+        }
+
+
+        url = self.api_update_status_url
+        self.call_update_task_result(url=url, data=data, expert_status_code=200)
+
+
+        data = {
+            # 'task_id': '42a6497c-8543-46d5-b076-0d3d470df8fb',
+            'task_id': '4f6d53de-7358-4ac5-8025-3a064f8572721',
+            'result': 'abcxyz'
+        }
+
+
+        url = self.api_update_status_url
+        self.call_update_task_result(url=url, data=data, expert_status_code=400)
+
+
+
+
+version: '2'
+services:
+  web:
+    mem_limit: 2g
+    build:
+      context: .
+      dockerfile: Dockerfile_dev
+#    image: fimpluscd
+    command:  bash -c "python manage.py runserver 0.0.0.0:8080"
+    volumes:
+      - /docker/fimplus/logs/api:/var/log/fimplus
+      - /home/lamhaison/PycharmProjects/hd1-cd-devops:/code
+      - /home/lamhaison/PycharmProjects/hd1-cd-devops/docker-compose-deploy:/docker-compose-deploy
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./dev_config.env
+    container_name: web_cd
+    restart: always
+    depends_on:
+      - rabbitmq
+      - mysql
+
+  rabbitmq:
+    image: rabbitmq
+    container_name: rabbitmq_cd
+    ports:
+      - "5672:5672"
+
+  worker:
+    mem_limit: 2g
+    build:
+      context: .
+      dockerfile: Dockerfile_dev
+#    image: fimpluscd
+    command:  bash -c "python manage.py celery worker --concurrency=1 -Q cd_queue"
+    volumes:
+      - /docker/fimplus/logs/worker:/var/log/fimplus
+      - /docker/fimplus/sqlite:/var/lib/sqlite
+      - /home/lamhaison/PycharmProjects/hd1-cd-devops:/code
+      - /home/lamhaison/PycharmProjects/hd1-cd-devops/docker-compose-deploy:/docker-compose-deploy
+    env_file:
+      - ./dev_config.env
+    environment:
+      - ROUTING_QUEUE=cd_queue
+      - C_FORCE_ROOT=true
+    depends_on:
+      - rabbitmq
+      - mysql
+
+    container_name: worker_cd
+    restart: always
+
+    dns:
+      - 10.10.0.64
+      - 10.10.0.65
+      - 8.8.8.8
+
+
+  mysql:
+    image: mysql
+    # Persistent data of mysql
+    volumes:
+      - /docker/fimplus/database:/var/lib/mysql
+    container_name: "mysql_cd"
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=cddb
+      - MYSQL_USER=cd
+      - MYSQL_PASSWORD=123456
+    ports:
+      - "3306:3306"
+
+
+ config_dict = {}
+
+        import json
+        env_list = json.dumps(
+            service_info.deploy_template.docker_compose_template['services'][
+                '${service_name}']['environment']).replace('${deploy_env}',
+                                                           env_info.get_node_env_environment())
+
+        logger.debug(env_list)
+        env_list = json.loads(env_list)
+        logger.debug(env_list)
+
+        config_dict['env'] = env_list
+        config_dict['name'] = service_info.get_service_name()
+        config_dict['networks'] = ['test-network']
+        config_dict['restart_policy'] = RestartPolicy(conditi')
+        config_dict['mode'] = {'Replicated': {'Replicas': replicas}}
+        config_dict['log_driver'] = 'syslog'
+        config_dict['log_driver_options'] = {
+            'syslog-address': env_info.get_rsys_log_address_docker(),
+            'tag': service_info.get_rsyslog_tag(env_info.name)
+        }
+
+        return config_dict
+
+
+
+sudo docker build --no-cache --build-arg GIT_REPO=git@bitbucket.org:fimplus/hd1-payment-soap.git -t hub.fimplus-prod.io:5000/init-hd1-payment-soap:latest -f init_hd1-payment-soap .
+
+
+
+
+
+#!/bin/bash
+
+service_name=api
+
+case "$service_name" in
+'start')
+echo "Starting application"
+;;
+'stop')
+echo "Stopping application"
+;;
+'restart')
+echo "Usage: $0 [start|stop]"
+;;
+esac
+
+
+JENKINS_HOME=/data/jenkins-home \
+&& cp $JENKINS_HOME/workspace/build-hd1-cronjob-devops/requirements.txt $JENKINS_HOME/fimplus_devops/Ng-Docker/init-hd1-cronjob-devops/ \
+&& sudo docker build --no-cache -t hub.fimplus-prod.io:5000/init-hd1-cronjob-devops:latest $JENKINS_HOME/fimplus_devops/Ng-Docker/init-hd1-cronjob-devops/
+
+
+
+master_7980f693d73b971a8188b865cfe4eec63169c383
+bc42-nexmo-api_e43ddb8327f66e86ac404baf66361523156f8552
+bc44-spam-sms_ef79c1650e51205c5e69fece1e9b8065b8bc18ea 
+master_02d548368eb75506803a2e883ab526a9e4ac7065
+master_02d548368eb75506803a2e883ab526a9e4ac7065    
+master_02d548368eb75506803a2e883ab526a9e4ac7065    
+alternate-vht-vivas_ea0557041c9f176347e85bece0e775a79d1315e4  
+alternate-vht-vivas_ea0557041c9f176347e85bece0e775a79d1315e4 
+alternate-vht-vivas_ea0557041c9f176347e85bece0e775a79d1315e4
+alternate-vht-vivas_ea0557041c9f176347e85bece0e775a79d1315e4
+alternate-vht-vivas_ea0557041c9f176347e85bece0e775a79d1315e4
+alternate-vht-vivas_ea0557041c9f176347e85bece0e775a79d1315e4
+alternate-vht-vivas_ea0557041c9f176347e85bece0e775a79d1315e4
+alternate-vht-vivas_ea0557041c9f176347e85bece0e775a79d1315e4
+master_bcb3baa2b0a8e89e48527f058d9e560a11f53
+bc42-nexmo-api_e43ddb8327f66e86ac404baf66361523156f8552.   
+bc44-spam-sms_ef79c1650e51205c5e69fece1e9b8065b8bc18ea     
+bc44-spam-sms_35fc02f13bffb7d095cb130d7dd370a69e7ca6cb     
+bc44-spam-sms_da95ea339d6b40f81de8ffd793384e63826d0d0a     
+bc42-nexmo-api_e43ddb8327f66e86ac404baf66361523156f8552    
+bc44-spam-sms_d6026b3c3b63aa2955e266fc11bedf7726ca7dcd     
+bc44-spam-sms_fcba0239d1f35308889311c291c0679a03ddb566     
+master_bcb3baa2b0a8e89e48527f058d9e560a11f53af6    
+bc42-nexmo-api_e43ddb8327f66e86ac404baf66361523156f8552
+bc42-nexmo-api_e43ddb8327f66e86ac404baf66361523156f8552
+bc42-nexmo-api_e43ddb8327f66e86ac404baf66361523156f8552
+master_a6b1a8220f8ce95d311e7718ccb5915c021938ae    
+master_f12d754425a4b8c15dbbe3b1380fe641453d8967    
+master_f12d754425a4b8c15dbbe3b1380fe641453d8967    
+master_08f04f10bf1e8688621961dd0b38c7f16392d572    
+master_08f04f10bf1e8688621961dd0b38c7f16392d572    
+master_cb29de0263ea478d0e7b67b286bd34633cfde409    
+change-vht-domain_ae4dae7719b2b6b6a0c1adead0b3cea37376ab61 
+change-vht-domain_ae4dae7719b2b6b6a0c1adead0b3cea37376ab61 
+master_cb29de0263ea478d0e7b67b286bd34633cfde409
+master_cb29de0263ea478d0e7b67b286bd34633cfde409
+master_cb29de0263ea478d0e7b67b286bd34633cfde409    
+master_cb29de0263ea478d0e7b67b286bd34633cfde409    
+master_cb29de0263ea478d0e7b67b286bd34633cfde409
+master_cb29de0263ea478d0e7b67b286bd34633cfde409    
+master_cb29de0263ea478d0e7b67b286bd34633cfde409    
+master_cb29de0263ea478d0e7b67b286bd34633cfde409    
+master_cb29de0263ea478d0e7b67b286bd34633cfde409
+master_cb29de0263ea478d0e7b67b286bd34633cfde409
+
+
+
+
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Build CM</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>GIT_BRANCH_TAG</name>
+          <description></description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DOCKER_REPOSITORY_NAME</name>
+          <description>Same as Bitbucket slug of project. Name of pm2 app</description>
+          <defaultValue>hd1-cm</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RESPONSE_DATA</name>
+          <description></description>
+          <defaultValue>{&quot;token&quot;:&quot;no_token&quot;}</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ENV</name>
+          <description></description>
+          <defaultValue>sand</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jvnet.hudson.plugins.shelveproject.ShelveProjectProperty plugin="shelve-project-plugin@1.5"/>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.4">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@bitbucket.org:fimplus/hd1-cm.git</url>
+        <credentialsId>0cfe0552-8ef0-4c3c-9da1-d6065309155c</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${GIT_BRANCH_TAG}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <axes/>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>/bin/bash -x $BUILD_AND_DEPLOY_SCRIPT_TEST</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.0.1">
+      <teamDomain></teamDomain>
+      <authToken></authToken>
+      <buildServerUrl>/</buildServerUrl>
+      <room></room>
+      <startNotification>false</startNotification>
+      <notifySuccess>false</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>false</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <notifyRepeatedFailure>false</notifyRepeatedFailure>
+      <includeTestSummary>true</includeTestSummary>
+      <commitInfoChoice>AUTHORS_AND_TITLES</commitInfoChoice>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier>
+  </publishers>
+  <buildWrappers/>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+  </executionStrategy>
+</project>
+
+
+
+for row in range $(ls|grep build-hd1); do sed -ri "s|<matrix-project(.*)$|<project>|" $row/config.xml|grep matrix-project; done
+
+
+for row in $(ls|grep build-hd1); do sed -ri "s|<matrix-project plugin="matrix-project@1.7">$|<project>|" $row/config.xml|grep matrix-project; done
+
+
+for row in $(ls|grep build-hd1); do sed -ri "s|</matrix-project>$|</project>|" $row/config.xml|grep matrix-project; done
+
+for row in $(ls|grep build-hd1); do sed -ri "s|<matrix-project(.*)$|<project>|" $row/config.xml|grep matrix-project; done
+
+
+
+
+
+
+
+build-hd1-billing-azure
+build-hd1-cas-azure
+build-hd1-admintool
+
+
+
+cd $WORKSPACE
+
+# Build
+# service=${DOCKER_REPOSITORY_NAME}
+service=devops-test
+
+image_tag=${GIT_BRANCH_TAG}_$GIT_COMMIT
+# CD_TOOL is global variable of jenkins configuration
+result=$(curl http://$CD_TOOL/cd/checkexitimage/$service/$image_tag)
+
+if [ "$result" = "True" ]
+then
+        echo "Image da ton tai $service $image"
+
+else
+        echo "build image"
+        
+    # Build
+    sudo docker build --no-cache --build-arg GIT_BRANCH_TAG=${GIT_BRANCH_TAG} -t ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY_NAME}:${GIT_BRANCH_TAG}_$GIT_COMMIT  $JENKINS_HOME/fimplus_devops/Ng-Docker/${DOCKER_REPOSITORY_NAME}
+        
+        # Login
+    yes | sudo docker login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" ${DOCKER_REGISTRY}
+        
+        # Push to Hub
+    sudo docker push ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY_NAME}:${GIT_BRANCH_TAG}_$GIT_COMMIT
+
+    
+    # Remove Build Image
+    sudo docker rmi -f ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY_NAME}:${GIT_BRANCH_TAG}_$GIT_COMMIT
+fi
+
+
+echo "Deploy service"
+
+
+
+
+
+
+"{{mysql_ubuntu_pkg}}-{{mysql_pkg_version}}"
+mysql-server-5.6
+
+
+10.10.4.77
+db-cd-1.fimplus-prod.io
+10.10.4.78
+db-cd-2.fimplus-prod.io
+
+10.10.4.74
+db-cd.fimplus-prod.io
+
+
+10.10.5.152
+jenkins-1.fimplus-prod.io
+10.10.5.153
+jenkins-2.fimplus-prod.io
+
+10.10.5.151
+cd.fimplus-prod.io
+
+
+
+/usr/bin/ansible-playbook /data/jenkins-home/fimplus_devops/Ansible/sonlh/roles/ansible-collectd/tests/jenkins.yml -i /etc/ansible/production -l prod-db-cd -s -f 5 -e GRAPHITE_SERVER_IP=monitor.fimplus-prod.io -e ENVIRONMENT=prod
+
+
+
+ /usr/bin/ansible-playbook /data/jenkins-home/fimplus_devops/Ansible/sonlh/roles/ansible-disk/test/jenkins_azure.yml -i /etc/ansible/azure -l dmz-sentry -s -f 5
+
+  /usr/bin/ansible-playbook /data/jenkins-home/fimplus_devops/Ansible/sonlh/roles/ansible-disk/test/jenkins_fpt.yml -i /etc/ansible/production -l prod-db-cd -s -f 5
+
+
+
+  ansible-playbook -s -i /etc/ansible/production jenkins.yml -l prod-db-cd
+
+
+  mysql -u root -p -e "grant usage on *.*  to haproxy_check@'%' ; flush privileges;; FLUSH PRIVILEGES"
+
+
+
+
+CHANGE MASTER TO MASTER_HOST = 'db-cd-1.fimplus-prod.io', MASTER_USER = 'replicator', MASTER_PASSWORD = 'replicator', MASTER_LOG_FILE = 'mysql-bin.000007', MASTER_LOG_POS =120;
+
+  CHANGE MASTER TO MASTER_HOST = 'db-cd-2.fimplus-prod.io', MASTER_USER = 'replicator', MASTER_PASSWORD = 'replicator', MASTER_LOG_FILE = 'mysql-bin.000007', MASTER_LOG_POS = 120;
+
+
+
+set global sql_slave_skip_counter = 1; stop slave; start slave;
+
+
+
+
+
+  config.vm.define "jenkins" do |jenkins|
+      jenkins.vm.hostname = "jenkins"
+      jenkins.vm.network "private_network", ip: "172.20.20.111"
+  end
+
+
+for row in $(ls |grep azure| grep -v "test"); do echo "${row/azure/""}"; done
+
+
+first="I love Suzy and Mary"
+second="Sara"
+first=${first/azure/""}
+echo $first
+
+echo "$(echo "$row"|awk -F "-" {'print $1'})-$(echo "$row"|awk -F "-" {'print $2'})-$(echo "$row"|awk -F "-" {'print $3'})"
+
+
+
+for row in $(ls |grep azure| grep -v "test"); do mv $row $(echo "${row/-azure/""}"); done
+
+
+
+rabbitmqctl add_vhost /cd
+rabbitmqctl add_user hd1cddevops Rc3TT5UTUxs79dC
+rabbitmqctl set_permissions -p /cd hd1cddevops ".*" ".*" ".*"
+
+
+
+SWARM_MANAGER=sw-master.fimplus-prod.io:8990
+docker run -d -p 9000:9000 --name portainer portainer/portainer -H tcp://$SWARM_MANAGER --swarm
+
+
+
+
+/bin/bash -x $BUILD_AND_DEPLOY_SCRIPT
+
+- SERVICE_CHECK_HTTP=/health_check
+- SERVICE_CHECK_INTERVAL=15s
+- SERVICE_CHECK_TIMEOUT=1s
+
+
+
+constraint:node==docker-node-*
+
+
+
+sudo docker login -u fimplus -p RTgCuiX1kLPF640IEwT8Za8xpLs1oEBD hub.fimplus-prod.io:5000 && docker pull hub.fimplus-prod.io:5000/init-hd1-smart-device
+

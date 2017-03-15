@@ -43,3 +43,4 @@ folder_list:
   - /data/nginx-log/
   - /data/consul-log/
   - /data/nginx_lb_swarm/
+  - /data/docker-swarm/
