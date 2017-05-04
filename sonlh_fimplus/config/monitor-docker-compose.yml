@@ -1,0 +1,64 @@
+# Graphite, carbon, carbon-relay, grafana
+version: '2'
+services:
+  carbon-relay:
+    image: banno/carbon-relay
+    volumes:
+      - /docker/whisper:/opt/graphite/storage/whisper
+    ports:
+      - "2003:2003"
+      - "2004:2004"
+      - "7002:7002"
+    container_name: "carbon-relay"
+    depends_on:
+      - carbon-cache_1
+      - carbon-cache_2
+      - carbon-cache_3
+    environment:
+      - RELAY_METHOD=consistent-hashing
+      - DESTINATIONS=carbon-cache_1:2004, carbon-cache_2:2004, carbon-cache_3:2004
+  carbon-cache_1:
+    image: banno/carbon-cache
+    volumes:
+      - /docker/whisper:/opt/graphite/storage/whisper
+    #ports:
+    #  - "2023:2003"
+    #  - "2024:2004"
+    #  - "7022:7002"
+    container_name: "carbon-cache_1"
+
+  carbon-cache_2:
+    image: banno/carbon-cache
+    volumes:
+      - /docker/whisper:/opt/graphite/storage/whisper
+    #ports:
+    #  - "2033:2003"
+    #  - "2034:2004"
+    #  - "7032:7002"
+    container_name: "carbon-cache_2"
+  carbon-cache_3:
+    image: banno/carbon-cache
+    volumes:
+      - /docker/whisper:/opt/graphite/storage/whisper
+    #ports:
+    #  - "2043:2003"
+    #  - "2044:2004"
+    #  - "7042:7002"
+    container_name: "carbon-cache_3"
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - /docker/grafana/var/lib/grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    container_name: "grafana"
+    depends_on:
+     - graphite
+  graphite:
+    image: banno/graphite-web
+    volumes:
+      - /docker/graphite/storage:/opt/graphite/storage
+      - /docker/whisper:/opt/graphite/storage/whisper
+    ports:
+      - "80:80"
+    container_name: "graphite"

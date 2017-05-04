@@ -1,0 +1,19 @@
+---
+- name: config render initialed for resolv.conf.
+  vars:
+    dns_server_list:
+      - 10.1.6.4
+      - 8.8.8.8
+  hosts: all
+  # sudo: yes
+  tasks:
+    - name: Add dns server to head file
+      template:
+        src: "templates/resolv_head.conf"
+        dest: "/etc/resolvconf/resolv.conf.d/head"
+        owner: root
+        group: root
+        mode: 0644
+      become: yes
+      #become_user: ubuntu
+      #become_method: su
